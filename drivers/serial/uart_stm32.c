@@ -640,7 +640,22 @@ static void uart_stm32_poll_out(const struct device *dev,
 	}
 #endif /* CONFIG_PM */
 
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX enable */
+		gpio_pin_set_dt(&config->de_pin, 1);
+	}
+#endif
+
 	LL_USART_TransmitData8(config->usart, (uint8_t)c);
+
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX disable */
+		gpio_pin_set_dt(&config->de_pin, 0);
+	}
+#endif
+
 	irq_unlock(key);
 }
 
@@ -728,6 +743,13 @@ static int uart_stm32_fifo_fill(const struct device *dev,
 	/* Lock interrupts to prevent nested interrupts or thread switch */
 	key = irq_lock();
 
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX enable */
+		gpio_pin_set_dt(&config->de_pin, 1);
+	}
+#endif
+
 	while ((size - num_tx > 0) &&
 	       LL_USART_IsActiveFlag_TXE(config->usart)) {
 		/* TXE flag will be cleared with byte write to DR|RDR register */
@@ -735,6 +757,13 @@ static int uart_stm32_fifo_fill(const struct device *dev,
 		/* Send a character (8bit , parity none) */
 		LL_USART_TransmitData8(config->usart, tx_data[num_tx++]);
 	}
+
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX disable */
+		gpio_pin_set_dt(&config->de_pin, 0);
+	}
+#endif
 
 	irq_unlock(key);
 
@@ -807,6 +836,13 @@ static void uart_stm32_irq_tx_disable(const struct device *dev)
 
 #ifdef CONFIG_PM
 	irq_unlock(key);
+#endif
+
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX disable */
+		gpio_pin_set_dt(&config->de_pin, 0);
+	}
 #endif
 }
 
@@ -973,6 +1009,13 @@ static inline void async_evt_tx_done(struct uart_stm32_data *data)
 	data->dma_tx.counter = 0;
 
 	async_user_callback(data, &event);
+
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX disable */
+		gpio_pin_set_dt(&config->de_pin, 0);
+	}
+#endif
 }
 
 static inline void async_evt_tx_abort(struct uart_stm32_data *data)
@@ -1351,6 +1394,13 @@ static int uart_stm32_async_tx(const struct device *dev,
 	ret = dma_config(data->dma_tx.dma_dev, data->dma_tx.dma_channel,
 				&data->dma_tx.dma_cfg);
 
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX enable */
+		gpio_pin_set_dt(&config->de_pin, 1);
+	}
+#endif
+
 	if (ret != 0) {
 		LOG_ERR("dma tx config error!");
 		return -EINVAL;
@@ -1457,6 +1507,13 @@ static int uart_stm32_async_tx_abort(const struct device *dev)
 #endif /* st_stm32u5_dma */
 	dma_stop(data->dma_tx.dma_dev, data->dma_tx.dma_channel);
 	async_evt_tx_abort(data);
+
+#ifndef USART_CR3_DEM
+	if (config->de_enable) {
+		/* TX disable */
+		gpio_pin_set_dt(&config->de_pin, 0);
+	}
+#endif
 
 	return 0;
 }
@@ -1779,6 +1836,20 @@ static int uart_stm32_init(const struct device *dev)
 			LL_USART_SetDESignalPolarity(config->usart, LL_USART_DE_POLARITY_LOW);
 		}
 	}
+#else
+	/* Configure GPIO pin for software driver enable signal */
+	if (config->de_enable) {
+		if (!device_is_ready(config->de_pin.port)) {
+			LOG_ERR("GPIO port %s not ready", config->de_pin.port->name);
+			return -EINVAL;
+		}
+
+		/* Configure and set pin to RX as default */
+		if (gpio_pin_configure_dt(&config->de_pin, GPIO_OUTPUT_LOW)) {
+			LOG_ERR("Unable to configure GPIO pin %u", config->de_pin.pin);
+			return -EINVAL;
+		}
+	}
 #endif
 
 	LL_USART_Enable(config->usart);
@@ -1995,6 +2066,7 @@ static const struct uart_stm32_config uart_stm32_cfg_##index = {	\
 	.rx_invert = DT_INST_PROP(index, rx_invert),			\
 	.tx_invert = DT_INST_PROP(index, tx_invert),			\
 	.de_enable = DT_INST_PROP(index, de_enable),			\
+	.de_pin = GPIO_DT_SPEC_INST_GET_OR(index, de_gpios, {0}), \
 	.de_assert_time = DT_INST_PROP(index, de_assert_time),		\
 	.de_deassert_time = DT_INST_PROP(index, de_deassert_time),	\
 	.de_invert = DT_INST_PROP(index, de_invert),			\

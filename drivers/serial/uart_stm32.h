@@ -12,6 +12,7 @@
 #ifndef ZEPHYR_DRIVERS_SERIAL_UART_STM32_H_
 #define ZEPHYR_DRIVERS_SERIAL_UART_STM32_H_
 
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pinctrl.h>
 
 #include <stm32_ll_usart.h>
@@ -38,6 +39,8 @@ struct uart_stm32_config {
 	bool tx_invert;
 	/* enable de signal */
 	bool de_enable;
+	/* driver enable pin */
+	struct gpio_dt_spec de_pin;
 	/* de signal assertion time in 1/16 of a bit */
 	uint8_t de_assert_time;
 	/* de signal deassertion time in 1/16 of a bit */

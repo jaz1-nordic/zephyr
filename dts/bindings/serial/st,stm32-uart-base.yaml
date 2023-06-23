@@ -86,3 +86,11 @@ properties:
     description: |
       Invert the binary logic of the de pin. When enabled, physical logic levels are inverted and
       we use 1=Low, 0=High instead of 1=High, 0=Low.
+
+  de-gpios:
+    type: phandle-array
+    description: Software driver enable pin.
+
+      The driver enable of RS485 is active low.
+      If connected directly the MCU pin should be configured
+      as active low.
