@@ -1,0 +1,18 @@
+# Copyright (c) 2016 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config HAS_NRFE
+	bool
+
+menu "nrfe drivers"
+	depends on HAS_NRFE
+
+config NRFE_GPIO
+	bool
+
+config NRFE_GPIO2
+	bool "eGPIO2 driver instance"
+	depends on $(dt_nodelabel_has_compat,egpio2,$(DT_COMPAT_NORDIC_NRF_EGPIO))
+	select NRFE_GPIO
+
+endmenu # "nrfe drivers"
