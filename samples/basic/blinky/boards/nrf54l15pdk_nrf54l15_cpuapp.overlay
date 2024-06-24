@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2024 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	soc {
+		reserved-memory {
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			sram_rx: memory@20018000 {
+				reg = <0x20018000 0x0800>;
+			};
+
+			sram_tx: memory@20020000 {
+				reg = <0x20020000 0x0800>;
+			};
+		};
+	};
+
+	ipc {
+		ipc0: ipc0 {
+			compatible = "zephyr,ipc-icmsg";
+			tx-region = <&sram_tx>;
+			rx-region = <&sram_rx>;
+			mboxes = <&cpuapp_vevif_rx 15>, <&cpuapp_vevif_tx 16>;
+			mbox-names = "rx", "tx";
+			status = "okay";
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led4: led_4 {
+			gpios = <&egpio2 7 GPIO_ACTIVE_HIGH>;
+			label = "Test LED 4";
+		};
+	};
+
+	aliases {
+		led4 = &led4;
+	};
+
+	egpio2: egpio2 {
+		compatible = "nordic,nrf-egpio";
+		gpio-reserved-ranges = <0 6>, <8 4>;
+		#gpio-cells = <2>;
+		ngpios = <11>;
+		status = "okay";
+		port = <2>;
+	};
+};
+
+&cpuapp_vevif_rx {
+	status = "okay";
+};
+
+&cpuapp_vevif_tx {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "disabled";
+};
+
+&gpio1 {
+	status = "disabled";
+};
+
+&gpio2 {
+	status = "disabled";
+};
+
+&gpiote20 {
+	status = "disabled";
+};
+
+&gpiote30 {
+	status = "disabled";
+};

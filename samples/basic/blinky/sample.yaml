@@ -10,3 +10,31 @@ tests:
     harness: led
     integration_platforms:
       - frdm_k64f
+
+  sample.basic.blinky.egpio:
+    platform_allow: nrf54l15pdk/nrf54l15/cpuapp
+    integration_platforms:
+      - nrf54l15pdk/nrf54l15/cpuapp
+    tags:
+      - LED
+      - gpio
+      - ipc
+    filter: dt_enabled_alias_with_parent_compat("led4", "gpio-leds")
+    depends_on: gpio
+    harness:
+      - console
+      - led
+    harness_config:
+      type: multi_line
+      ordered: false
+      regex:
+        - "host: IPC-service HOST demo started"
+        - "host: Ep bounded"
+        - "host: Perform sends for"
+        - "host: Sent"
+        - "host: Received"
+        - "host: IPC-service HOST demo ended"
+    extra_args:
+      blinky_SNIPPET=nordic-flpr
+      remote_CONFIG_MULTITHREADING=n
+    sysbuild: true

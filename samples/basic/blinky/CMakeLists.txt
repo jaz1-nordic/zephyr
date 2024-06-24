@@ -2,6 +2,13 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+
+if(NOT CONFIG_BOARD_NRF54L15PDK_NRF54L15_CPUAPP)
+  message(FATAL_ERROR "${BOARD} is not supported for this sample")
+endif()
+
 project(blinky)
 
 target_sources(app PRIVATE src/main.c)
+
+include(ExternalProject)
