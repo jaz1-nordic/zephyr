@@ -7,6 +7,7 @@ endif (CONFIG_NRF_802154_RADIO_DRIVER OR CONFIG_NRF_802154_SERIALIZATION)
 
 add_subdirectory_ifdef(CONFIG_HAS_NRFX nrfx)
 add_subdirectory_ifdef(CONFIG_HAS_NRFS nrfs)
+add_subdirectory_ifdef(CONFIG_HAS_NRFE nrfe)
 
 if(CONFIG_NRF_REGTOOL_GENERATE_UICR)
   list(APPEND nrf_regtool_components GENERATE:UICR)

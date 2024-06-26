@@ -23,6 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: magp
+      url-base: https://github.com/magp-nordic
 
   group-filter: [-babblesim, -optional]
 
@@ -188,7 +190,8 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: ab5cb2e2faeb1edfad7a25286dcb513929ae55da
+      remote: magp
+      revision: pull/1/head
       path: modules/hal/nordic
       groups:
         - hal
